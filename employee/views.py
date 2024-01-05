@@ -168,7 +168,7 @@ def save_employee(request):
                 "salary": data['salary'],
                 "status": data['status']
             }))
-    return HttpResponse(json.dumps(resp), content_type="application/json")
+        return HttpResponse(json.dumps(resp), content_type="application/json")
 
 @login_required
 def delete_employee(request):

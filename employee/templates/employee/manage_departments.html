@@ -6,6 +6,7 @@
             <label for="employee" class="control-label">Employee</label>
             <select name="employee" id="employee" class="form-control form-control-sm rounded-0" required>
                 {% for employee in employees %}
+                <option value="{{ employee.id }}" selected>{{ employee.firstname }} {{ employee.lastname }}</option>
                     {% if department.employee_id == employee.id %}
                         <option value="{{ employee.id }}" selected>{{ employee.firstname }} {{ employee.lastname }}</option>
                     {% else %}
@@ -14,17 +15,39 @@
                 {% endfor %}
             </select>
         </div>
-
         <div class="form-group mb-3">
             <label for="department_type" class="control-label">Department Type</label>
             <select name="department_type" id="department_type" class="form-control form-control-sm rounded-0" required>
-                {% for choice in department.Department_CHOICES %}
-                    {% if department.department_type == choice.0 %}
-                        <option value="{{ choice.0 }}" selected>{{ choice.1 }}</option>
-                    {% else %}
-                        <option value="{{ choice.0 }}">{{ choice.1 }}</option>
-                    {% endif %}
-                {% endfor %}
+                {% if department.department_type and department_type == 'Recruitment' %}
+                <option selected>Recruitment</option>
+                {% else %}
+                <option>Recruitment</option>
+                {% endif %}
+    
+                {% if department.department_type and department_type == 'IT' %}
+                <option selected>IT</option>
+                {% else %}
+                <option>IT</option>
+                {% endif %}
+
+                {% if department.department_type and department_type == 'Finance' %}
+                <option selected>Finance</option>
+                {% else %}
+                <option>Finance</option>
+                {% endif %}
+
+                {% if department.department_type and department_type == 'Management' %}
+                <option selected>Management</option>
+                {% else %}
+                <option>Management</option>
+                {% endif %}
+
+                {% if department.department_type and department_type == 'Other' %}
+                <option selected>Other</option>
+                {% else %}
+                <option>Other</option>
+                {% endif %}
+    
             </select>
         </div>
 

@@ -2,7 +2,7 @@ from django.db import models
 from datetime import datetime
 from django.db import models
 from django.utils import timezone
-from phonenumber_field.modelfields import PhoneNumberField
+# from phonenumber_field.modelfields import PhoneNumberField
 from employee.validators import validate_pdf_extension
 
 # Create your models here.
@@ -20,7 +20,7 @@ class Employees(models.Model):
     lastname = models.CharField(max_length=50) 
     gender = models.CharField(max_length=6, choices=GENDER_CHOICES, blank=True, null=True)
     dob = models.DateField(blank=True,null= True) 
-    contact = PhoneNumberField(blank=True, null=True)
+    contact = models.IntegerField(blank=True, null=True)
     address = models.TextField() 
     email = models.TextField() 
     date_hired = models.DateField() 

@@ -1,0 +1,96 @@
+
+<div class="container-fluid">
+    <form action="" id="task-form">
+        <input type="hidden" name="id" value="{% if task.pk %}{{ task.pk }}{% endif %}">
+        
+        <div class="form-group mb-3">
+            <label for="title" class="control-label">Title</label>
+            <input type="text" name="title" id="title" class="form-control form-control-sm rounded-0" value="{% if task.title %}{{ task.title }}{% endif %}" required>
+        </div>
+        
+        <div class="form-group mb-3">
+            <label for="description" class="control-label">Description</label>
+            <textarea rows="5" name="description" id="description" class="form-control form-control-sm rounded-0" required>{% if task.description %}{{ task.description }}{% endif %}</textarea>
+        </div>
+        <div class="form-group mb-3">
+            <label for="task_status" class="control-label">Task-status</label>
+            <select name="task_status" id="task_status" class="form-control form-control-sm rounded-0" required>
+                {% if task.task_status and task_status == 'Pending' %}
+                <option selected>Pending</option>
+                {% else %}
+                <option>Pending</option>
+                {% endif %}
+    
+                {% if task.task_status and task_status == 'Work In Progress' %}
+                <option selected>Work In Progress</option>
+                {% else %}
+                <option>Work In Progress</option>
+                {% endif %}
+
+                {% if task.task_status and task_status == 'Done' %}
+                <option selected>Done</option>
+                {% else %}
+                <option>Done</option>
+                {% endif %}
+    
+            </select>
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="estimated_time" class="control-label">Estimated Time</label>
+            <input type="number" step="any" name="estimated_time" id="estimated_time" class="form-control form-control-sm rounded-0" value="{% if task.estimated_time %}{{ task.estimated_time }}{% endif %}" required>
+        </div>
+    </form>
+</div>
+
+<script>
+    $(function() {
+        $('#task-form').submit(function(e) {
+            e.preventDefault();
+            var _this = $(this)
+            $('.err-msg').remove();
+            var el = $('<div>')
+            el.addClass("alert alert-danger err-msg")
+            el.hide()
+            if (_this[0].checkValidity() == false) {
+                _this[0].reportValidity();
+                return false;
+            }
+            start_loader();
+            $.ajax({
+                headers: {
+                    "X-CSRFToken": '{{csrf_token}}'
+                },
+                url: "{% url 'save-task-page' %}",
+                data: new FormData($(this)[0]),
+                cache: false,
+                contentType: false,
+                processData: false,
+                method: 'POST',
+                type: 'POST',
+                dataType: 'json',
+                error: err => {
+                    console.log(err)
+                    alert_toast("An error occured", 'error');
+                    end_loader();
+                },
+                success: function(resp) {
+                    if (typeof resp == 'object' && resp.status == 'success') {
+                        el.removeClass("alert alert-danger err-msg")
+                        location.reload()
+                    } else if (resp.status == 'failed' && !!resp.msg) {
+                        el.text(resp.msg)
+                    } else {
+                        el.text("An error occured", 'error');
+                        end_loader();
+                        console.err(resp)
+                    }
+                    _this.prepend(el)
+                    el.show('slow')
+                    $("html, body, .modal").scrollTop(0);
+                    end_loader()
+                }
+            })
+        })
+    })
+</script>

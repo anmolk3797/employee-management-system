@@ -6,7 +6,9 @@ from task_management.serializers import TaskSerializer
 from task_management.models import Task
 from django.db import connection
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required   
+from django.contrib.auth.decorators import login_required  
+from django.http import HttpResponse
+import json
 
 class TaskModelViewset(viewsets.ViewSet):
     serializer_class = TaskSerializer
@@ -40,14 +42,14 @@ class TaskModelViewset(viewsets.ViewSet):
  #Positions
 @login_required
 def task_list(request):
-    position_list = Position.objects.all()
+    task_list = Task.objects.all()
     context = {
-        'page_title':'Positions',
-        'positions':position_list,
+        'page_title':'Task Management',
+        'positions':task_list,
     }
-    return render(request, 'employee_information/positions.html',context)
+    return render(request, 'employee/tasks.html',context)
 @login_required
-def manage_positions(request):
+def manage_tasks(request):
     position = {}
     if request.method == 'GET':
         data =  request.GET
@@ -55,34 +57,51 @@ def manage_positions(request):
         if 'id' in data:
             id= data['id']
         if id.isnumeric() and int(id) > 0:
-            position = Position.objects.filter(id=id).first()
+            position = Task.objects.filter(id=id).first()
     
     context = {
         'position' : position
     }
-    return render(request, 'employee_information/manage_position.html',context)
+    return render(request, 'employee/manage_tasks.html',context)
 
 @login_required
-def save_position(request):
-    data =  request.POST
-    resp = {'status':'failed'}
+def save_tasks(request):
+    data = request.POST
+    resp = {'status': 'failed'}
+    
     try:
-        if (data['id']).isnumeric() and int(data['id']) > 0 :
-            save_position = Position.objects.filter(id = data['id']).update(name=data['name'], description = data['description'],status = data['status'])
+        if 'id' in data and data['id'].isnumeric() and int(data['id']) > 0:
+            task = Task.objects.get(id=data['id'])
+            task.title = data.get('title', '')
+            task.description = data.get('description', '')
+            task.task_status = data.get('task_status', '')  # Ensure this field matches the POST field name
+            task.estimated_time = float(data.get('estimated_time', 0))  # Ensure this field matches the POST field name and convert to float
+            task.save()
         else:
-            save_position = Position(name=data['name'], description = data['description'],status = data['status'])
-            save_position.save()
+            employee_id = data.get('employee_id', '')  # Get employee_id from POST data
+            # Assuming employee_id is valid and exists in your Employees model
+            employee = Employees.objects.get(id=employee_id)
+            
+            task = Task(
+                employee_id=employee,
+                title=data.get('title', ''),
+                description=data.get('description', ''),
+                task_status=data.get('task_status', ''),  # Ensure this field matches the POST field name
+                estimated_time=float(data.get('estimated_time', 0))  # Ensure this field matches the POST field name and convert to float
+            )
+            task.save()
         resp['status'] = 'success'
-    except:
+    except Exception as e:
         resp['status'] = 'failed'
+    
     return HttpResponse(json.dumps(resp), content_type="application/json")
 
 @login_required
-def delete_position(request):
+def delete_tasks(request):
     data =  request.POST
     resp = {'status':''}
     try:
-        Position.objects.filter(id = data['id']).delete()
+        Task.objects.filter(id = data['id']).delete()
         resp['status'] = 'success'
     except:
         resp['status'] = 'failed'
