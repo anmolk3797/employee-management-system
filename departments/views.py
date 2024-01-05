@@ -65,18 +65,32 @@ def manage_departments(request):
 
 @login_required
 def save_department(request):
-    data =  request.POST
-    resp = {'status':'failed'}
+    data = request.POST
+    resp = {'status': 'failed'}
     try:
-        if (data['id']).isnumeric() and int(data['id']) > 0 :
-            save_department = Department.objects.filter(id = data['id']).update(department_type=data['name'], employee = data['employee'],status = data['status'])
+        employee_id = data.get('employee')  # You may need to adjust this based on how employee data is sent in the request
+
+        if (data['id']).isnumeric() and int(data['id']) > 0:
+            save_department = Department.objects.filter(id=data['id']).update(
+                department_type=data['name'],
+                employee_id=employee_id,
+                status=data['status']
+            )
         else:
-            save_department = Department(department_type=data['name'], description = data['description'],status = data['status'])
+            save_department = Department(
+                department_type=data['name'],
+                employee_id=employee_id,
+                status=data['status']
+            )
             save_department.save()
+
         resp['status'] = 'success'
-    except:
+    except Exception as e:
         resp['status'] = 'failed'
+        print(e)
+
     return HttpResponse(json.dumps(resp), content_type="application/json")
+
 
 @login_required
 def delete_department(request):

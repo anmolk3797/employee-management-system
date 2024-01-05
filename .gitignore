@@ -1,0 +1,8 @@
+*.pyc
+
+# Ignore other files or directories
+# Ignore Django migration files
+**/migrations/*.py
+**/migrations/*.pyc
+**/migrations/__pycache__/
+
