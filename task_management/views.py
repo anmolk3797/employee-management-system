@@ -9,6 +9,9 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required  
 from django.http import HttpResponse
 import json
+from rest_framework import viewsets,status
+from django.http import JsonResponse
+
 
 class TaskModelViewset(viewsets.ViewSet):
     serializer_class = TaskSerializer
@@ -38,6 +41,21 @@ class TaskModelViewset(viewsets.ViewSet):
         ]
 
         return Response(tasks_data)
+    
+    def create(self, request):
+        data = request.data
+        resp = {'status': 'failed'}
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    INSERT INTO task_management_task (title, description, task_status, estimated_time, employee_id_id)
+                    VALUES (%s, %s, %s, %s, %s)
+                """, [data['title'], data['description'], data['task_status'], data['estimated_time'], data['employee_id']])
+                resp['status'] = 'success'
+        except Exception as e:
+            resp['error'] = str(e)
+
+        return Response(resp, status=status.HTTP_201_CREATED if resp['status'] == 'success' else status.HTTP_400_BAD_REQUEST)
 
  #Positions
 @login_required
@@ -50,51 +68,49 @@ def task_list(request):
     return render(request, 'employee/tasks.html',context)
 @login_required
 def manage_tasks(request):
-    position = {}
+    task = {}
     if request.method == 'GET':
         data =  request.GET
         id = ''
         if 'id' in data:
             id= data['id']
         if id.isnumeric() and int(id) > 0:
-            position = Task.objects.filter(id=id).first()
+            task = Task.objects.filter(id=id).first()
+        employee_id = Employees.objects.filter(id =id ).first()
     
     context = {
-        'position' : position
+        'position' : task,
+        "employee" : employee_id
     }
     return render(request, 'employee/manage_tasks.html',context)
 
 @login_required
 def save_tasks(request):
-    data = request.POST
-    resp = {'status': 'failed'}
-    
-    try:
-        if 'id' in data and data['id'].isnumeric() and int(data['id']) > 0:
-            task = Task.objects.get(id=data['id'])
-            task.title = data.get('title', '')
-            task.description = data.get('description', '')
-            task.task_status = data.get('task_status', '')  # Ensure this field matches the POST field name
-            task.estimated_time = float(data.get('estimated_time', 0))  # Ensure this field matches the POST field name and convert to float
-            task.save()
-        else:
-            employee_id = data.get('employee_id', '')  # Get employee_id from POST data
-            # Assuming employee_id is valid and exists in your Employees model
-            employee = Employees.objects.get(id=employee_id)
-            
-            task = Task(
-                employee_id=employee,
-                title=data.get('title', ''),
-                description=data.get('description', ''),
-                task_status=data.get('task_status', ''),  # Ensure this field matches the POST field name
-                estimated_time=float(data.get('estimated_time', 0))  # Ensure this field matches the POST field name and convert to float
-            )
-            task.save()
-        resp['status'] = 'success'
-    except Exception as e:
-        resp['status'] = 'failed'
-    
-    return HttpResponse(json.dumps(resp), content_type="application/json")
+    if request.method == 'POST':
+        # Get the data from the POST request
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        task_status = request.POST.get('task_status')
+        estimated_time = request.POST.get('estimated_time')
+        employee_id = request.POST.get('employee_id')  # Assuming you have this value
+        
+        try:
+            # Validate and process the data before executing the SQL query
+            if title and description and task_status and estimated_time and employee_id:
+                with connection.cursor() as cursor:
+                    cursor.execute("""
+                        INSERT INTO task_management_task (title, description, task_status, estimated_time, employee_id_id)
+                        VALUES (%s, %s, %s, %s, %s)
+                    """, [title, description, task_status, estimated_time, employee_id])
+
+                return JsonResponse({'status': 'success'})
+            else:
+                return JsonResponse({'status': 'failed', 'message': 'Incomplete data'})
+        except Exception as e:
+            # Handle exceptions or errors
+            return JsonResponse({'status': 'failed', 'message': str(e)})
+
+    return JsonResponse({'status': 'failed', 'message': 'Invalid request method'})
 
 @login_required
 def delete_tasks(request):

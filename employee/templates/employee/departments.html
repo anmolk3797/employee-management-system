@@ -33,8 +33,8 @@
                     {% for department in departments %}
                     <tr>
                         <td class="px-2 py-1 text-center">{{ department.id }}</td>
-                        <td class="px-2 py-1 text-start">{{ department.employee}}</td>
-                        <td class="px-2 py-1 text-start">{{ department.department_type }}</td>
+                        <td class="px-2 py-1 text-start">{{ department.department_type}}</td>
+                        <td class="px-2 py-1 text-start">{{ department.employee }}</td>
                         <td class="px-2 py-1 text-center">
                             {% if department.status == 1 %}
                             <span class="badge bg-primary rounded-pill px-3">Active</span> {% else %}

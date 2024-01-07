@@ -3,7 +3,7 @@
 <div class="mdc-layout-grid__cell stretch-card mdc-layout-grid__cell--span-12">
     <div class="mdc-card py-2">
         <div class="d-flex justify-content-between align-items-center">
-            <h4 class="card-title mb-0">Position List</h4>
+            <h4 class="card-title mb-0">Task List</h4>
             <div class="text-start">
                 <button class="mdc-button mdc-button--raised mdc-ripple-upgraded btn-sm" id="create_new"><i class="material-icons mdc-button__icon">add</i><span> Add New</span></button>
             </div>
@@ -33,12 +33,12 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for position in positions %}
+                    {% for task in positions %}
                     <tr>
                         <td class="px-2 py-1 text-center">{{ task.id }}</td>
                         <td class="px-2 py-1 text-start">{{ task.title }}</td>
                         <td class="px-2 py-1 text-start">{{ task.description }}</td>
-                        <td class="px-2 py-1 text-start">{{ task.employee_id }}</td>
+                        <td class="px-2 py-1 text-start">{{ task.task_status}}</td>
                         <td class="px-2 py-1 text-start">{{ task.employee_id }}</td>
                         <div>
                             <select name="task_status">

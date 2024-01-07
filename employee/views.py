@@ -88,14 +88,14 @@ def employees(request):
     return render(request, 'employee/employees.html',context)
 @login_required
 def manage_employees(request):
-    employee = {}
+    employees = {}
     if request.method == 'GET':
         data =  request.GET
         id = ''
         if 'id' in data:
             id= data['id']
         if id.isnumeric() and int(id) > 0:
-            employee = Employees.objects.filter(id=id).first()
+            employees = Employees.objects.filter(id=id).first()
     context = {
         'employee' : employees,
     }
