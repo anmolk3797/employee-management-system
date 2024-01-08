@@ -68,49 +68,85 @@ def task_list(request):
     return render(request, 'employee/tasks.html',context)
 @login_required
 def manage_tasks(request):
-    task = {}
-    if request.method == 'GET':
-        data =  request.GET
-        id = ''
-        if 'id' in data:
-            id= data['id']
-        if id.isnumeric() and int(id) > 0:
-            task = Task.objects.filter(id=id).first()
-        employee_id = Employees.objects.filter(id =id ).first()
-    
-    context = {
-        'position' : task,
-        "employee" : employee_id
-    }
-    return render(request, 'employee/manage_tasks.html',context)
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("""
+                SELECT 
+                    task.id, task.title, task.description, 
+                    task.task_status, task.estimated_time,
+                    employee.id AS employee_id,
+                    employee.firstname AS employee_firstname,
+                    employee.lastname AS employee_lastname
+                FROM task_management_task AS task
+                INNER JOIN employee_employees AS employee 
+                    ON task.employee_id_id = employee.id
+            """)
+            rows = cursor.fetchall()
+
+        tasks_data = []
+        for row in rows:
+            task_data = {
+                'id': row[0],
+                'title': row[1],
+                'description': row[2],
+                'task_status': row[3],
+                'estimated_time': row[4],
+                'employee_id': row[5],
+                'employee_firstname': row[6],
+                'employee_lastname': row[7],
+            }
+            tasks_data.append(task_data)
+        with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT id, firstname, lastname
+                    FROM employee_employees
+                """)
+                employee_rows = cursor.fetchall()
+
+        employees = [{
+            'id': emp[0],
+            'firstname': emp[1],
+            'lastname': emp[2],
+        } for emp in employee_rows]
+
+
+        context = {
+            'tasks': tasks_data,
+            'employees': employees
+        }
+        return render(request, 'employee/manage_tasks.html', context)
+    except Exception as e:
+        return HttpResponse(f"Error: {str(e)}")
 
 @login_required
 def save_tasks(request):
     if request.method == 'POST':
-        # Get the data from the POST request
-        title = request.POST.get('title')
-        description = request.POST.get('description')
-        task_status = request.POST.get('task_status')
-        estimated_time = request.POST.get('estimated_time')
-        employee_id = request.POST.get('employee_id')  # Assuming you have this value
-        
+        data = request.POST
+        resp = {'status': 'failed'}
         try:
-            # Validate and process the data before executing the SQL query
-            if title and description and task_status and estimated_time and employee_id:
-                with connection.cursor() as cursor:
-                    cursor.execute("""
-                        INSERT INTO task_management_task (title, description, task_status, estimated_time, employee_id_id)
-                        VALUES (%s, %s, %s, %s, %s)
-                    """, [title, description, task_status, estimated_time, employee_id])
-
-                return JsonResponse({'status': 'success'})
+            employee_id = data.get('employee')
+            if employee_id:
+                employee_exists = Employees.objects.filter(id=employee_id).first()
+                if employee_exists:
+                    task = Task(
+                        title=data['title'],
+                        description=data['description'],
+                        task_status=data['task_status'],
+                        estimated_time=data['estimated_time'],
+                        employee_id=employee_exists
+                    )
+                    task.save()
+                    resp['status'] = 'success'
+                else:
+                    resp['error'] = 'Employee does not exist'
             else:
-                return JsonResponse({'status': 'failed', 'message': 'Incomplete data'})
+                resp['error'] = 'Invalid employee ID'
         except Exception as e:
-            # Handle exceptions or errors
-            return JsonResponse({'status': 'failed', 'message': str(e)})
+            resp['error'] = str(e)
 
-    return JsonResponse({'status': 'failed', 'message': 'Invalid request method'})
+        return JsonResponse(resp)
+    else:
+        return JsonResponse({'error': 'Invalid request method'})
 
 @login_required
 def delete_tasks(request):

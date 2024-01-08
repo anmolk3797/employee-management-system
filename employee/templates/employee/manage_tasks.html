@@ -2,7 +2,17 @@
 <div class="container-fluid">
     <form action="" id="task-form">
         <input type="hidden" name="id" value="{% if task.pk %}{{ task.pk }}{% endif %}">
-        
+        <div class="form-group mb-3">
+            <label for="employee" class="control-label">Employee</label>
+            <select name="employee" id="employee" class="form-control form-control-sm rounded-0" required>
+                <option value="" selected disabled>Select an employee</option>
+                {% for employee in employees %}
+                    <option value="{{ employee.id }}" {% if  task.employee_id == employee.id %} selected {% endif %}>
+                        {{ employee.firstname }} {{ employee.lastname }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
         <div class="form-group mb-3">
             <label for="title" class="control-label">Title</label>
             <input type="text" name="title" id="title" class="form-control form-control-sm rounded-0" value="{% if task.title %}{{ task.title }}{% endif %}" required>
@@ -39,15 +49,6 @@
         <div class="form-group mb-3">
             <label for="estimated_time" class="control-label">Estimated Time</label>
             <input type="number" step="any" name="estimated_time" id="estimated_time" class="form-control form-control-sm rounded-0" value="{% if task.estimated_time %}{{ task.estimated_time }}{% endif %}" required>
-        </div>
-        <div class="form-group mb-3">
-            <label for="employee" class="control-label">Assign To</label>
-            <select name="employee_id" id="employee_id" class="form-control form-control-sm rounded-0" required>
-                <!-- Loop through employees and populate the dropdown -->
-                {% for employee in employees %}
-                    <option value="{{ employee.id }}">{{ employee.firstname }} {{ employee.lastname }}</option>
-                {% endfor %}
-            </select>
         </div>
     </form>
 </div>

@@ -67,11 +67,11 @@ def departments(request):
         'departments':department_list,
     }
     return render(request, 'employee/departments.html',context)
+
 @login_required
 def manage_departments(request):
-    # Perform your logic to determine the department to fetch here
-    # For example, fetching the first department in the list
     try:
+        # Fetch the department - your logic to determine which department to fetch
         with connection.cursor() as cursor:
             cursor.execute("""
                 SELECT department.id, department.department_type,
@@ -90,15 +90,24 @@ def manage_departments(request):
                 'employee_firstname': row[3],
                 'employee_lastname': row[4],
             }
-            employee = {
-                'id': row[2],
-                'firstname': row[3],
-                'lastname': row[4],
-            }
+
+            # Fetch all employees
+            with connection.cursor() as cursor:
+                cursor.execute("""
+                    SELECT id, firstname, lastname
+                    FROM employee_employees
+                """)
+                employee_rows = cursor.fetchall()
+
+            employees = [{
+                'id': emp[0],
+                'firstname': emp[1],
+                'lastname': emp[2],
+            } for emp in employee_rows]
 
             context = {
                 'department': department,
-                'employee': employee,
+                'employees': employees,
             }
             return render(request, 'employee/manage_departments.html', context)
         else:
@@ -114,27 +123,14 @@ def save_department(request):
         try:
             employee_id = data.get('employee')
             if employee_id:
-                employee_exists = Employees.objects.filter(id=employee_id).exists()
+                employee_exists = Employees.objects.filter(id=employee_id).first()
                 if employee_exists:
-                    department_id = int(data.get('id', 0))
-                    if department_id > 0:
-                        # Update existing department
-                        department = Department.objects.filter(id=department_id).first()
-                        if department:
-                            department.department_type = data['name']
-                            department.employee.id = employee_id
-                            department.status = data['status']
-                            department.save()
-                        else:
-                            resp['error'] = 'Department not found'
-                    else:
-                        # Create new department
-                        department = Department(
-                            department_type=data['name'],
-                            employee=employee_id,
-                            status=data['status']
-                        )
-                        department.save()
+                    department = Department(
+                        department_type=data['department_type'],
+                        employee=employee_exists,
+                        status=data['status']
+                    )
+                    department.save()
                     resp['status'] = 'success'
                 else:
                     resp['error'] = 'Employee does not exist'

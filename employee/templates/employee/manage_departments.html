@@ -1,21 +1,19 @@
 <div class="container-fluid">
     <form action="" id="department-form">
-        <input type="hidden" name="id" value="{% if department.pk %}{{ department.pk }}{% endif %}">
+        <input type="hidden" name="id" value="{% if department.id %}{{ department.id }}{% endif %}">
         
         <div class="form-group mb-3">
             <label for="employee" class="control-label">Employee</label>
             <select name="employee" id="employee" class="form-control form-control-sm rounded-0" required>
                 <option value="" selected disabled>Select an employee</option>
                 {% for employee in employees %}
-                    <option value="{{ employee}}" {% if department and department.employee == employee.id %} selected {% endif %}>
+                    <option value="{{ employee.id }}" {% if  department.employee_id == employee.id %} selected {% endif %}>
                         {{ employee.firstname }} {{ employee.lastname }}
                     </option>
                 {% endfor %}
             </select>
         </div>
-    </form>
-</div>
-
+    
         <div class="form-group mb-3">
             <label for="department_type" class="control-label">Department Type</label>
             <select name="department_type" id="department_type" class="form-control form-control-sm rounded-0" required>
