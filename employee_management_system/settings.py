@@ -42,6 +42,8 @@ INSTALLED_APPS = [
     "employee",
     "departments",
     "task_management",
+    'drf_yasg',
+
 ]
 
 MIDDLEWARE = [
