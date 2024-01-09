@@ -40,12 +40,13 @@
                         <td class="px-2 py-1 text-start">{{ task.description }}</td>
                         <td class="px-2 py-1 text-start">{{ task.task_status}}</td>
                         <td class="px-2 py-1 text-start">{{ task.employee_id }}</td>
-                        <div>
+                        {% comment %} <div>
                             <select name="task_status">
                             {% for choice in TASK_CHOICES %}
                                 <option value="{{ choice.0 }}">{{ choice.1 }}</option>
                             {% endfor %}
-                        </select>
+                            </select>
+                        </div> {% endcomment %}
                     </div>
 
                         <td class="px-2 py-1 text-center">

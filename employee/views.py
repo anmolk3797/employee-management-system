@@ -128,7 +128,7 @@ def save_employee(request):
                     address=data['address'],
                     date_hired=data['date_hired'],
                     salary=data['salary'],
-                    status=data['status']
+                    status=data['status'],
                 )
             else:
                 save_employee = Employees(
@@ -145,11 +145,12 @@ def save_employee(request):
                     salary=data['salary'],
                     status=data['status']
                 )
-                # Handle file upload
-                if 'document' in data:
-                    document_content = base64.b64decode(data['document'])
-                    save_employee.document.save(data['code'] + '_document.pdf', ContentFile(document_content), save=False)
-                save_employee.save()
+            #     # Handle file upload
+            if request.FILES.get('document'):
+                document = request.FILES['document']
+                # Save the file to the desired location
+                save_employee.document.save(document.name, ContentFile(document.read()), save=True)
+            save_employee.save()
             resp['status'] = 'success'
         except Exception as e:
             resp['status'] = 'failed'
